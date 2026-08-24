@@ -1,0 +1,89 @@
+﻿@model List<WebAppMVC.Models.LeaveRequest>
+
+@{
+    ViewData["Title"] = "Manager Approval Queue";
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold" style="color: var(--text-brand);">Team Leave Requests</h2>
+    <p class="text-muted">Requests awaiting your approval.</p>
+</div>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No pending requests right now.</p>
+}
+else
+{
+    <table class="table table-hover table-bordered align-middle shadow-sm" id="managerQueueTable">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Leave Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Reason</th>
+                <th>Attachment</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model)
+            {
+                <tr>
+                    <td>@request.Employee?.Name</td>
+                    <td>@request.LeaveType?.Name</td>
+                    <td>@request.StartDate.ToShortDateString()</td>
+                    <td>@request.EndDate.ToShortDateString()</td>
+                    <td>@request.Reason</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(request.AttachmentPath))
+                        {
+                            <a href="~/uploads/@request.AttachmentPath" target="_blank" class="btn btn-outline-primary btn-sm">
+                                View File
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td>
+                        <form method="post" asp-action="ManagerApprove" class="d-flex gap-1">
+                            <input type="text" name="remarks" class="form-control form-control-sm" placeholder="Remarks (optional)" />
+                            <input type="hidden" name="id" value="@request.Id" />
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            <button type="submit" formaction="@Url.Action("ManagerReject")" class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<style>
+    #managerQueueTable thead {
+        background-color: var(--accent-soft);
+    }
+
+        #managerQueueTable thead th {
+            color: var(--text-brand);
+            font-weight: 600;
+            border-bottom: 2px solid var(--accent);
+        }
+
+    #managerQueueTable tbody td {
+        border-color: var(--border);
+    }
+
+    #managerQueueTable .btn-outline-primary {
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+
+        #managerQueueTable .btn-outline-primary:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+</style>

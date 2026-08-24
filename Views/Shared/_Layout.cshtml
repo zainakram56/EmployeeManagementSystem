@@ -1,0 +1,310 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebAppMVC.Data
+@using WebAppMVC.Models
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebAppMVC</title>
+    <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WebAppMVC.styles.css" asp-append-version="true" />
+    <style>
+            :root {
+                /* Primary - Blue */
+                --accent: #1e6fa8;
+                --accent-dark: #14587f;
+                --accent-soft: #e6f1f8;
+                /* Secondary - Amber */
+                --accent-2: #d99a3d;
+                --accent-2-soft: #fbf1e0;
+                /* Neutrals */
+                --bg: #f7f8fa;
+                --surface: #ffffff;
+                --border: #e5e7eb;
+                --text-main: #111827;
+                --text-brand: #14425e;
+                --text-muted: #6b7280;
+                /* Semantic - untouched */
+                --success: #16a34a;
+                --danger: #dc2626;
+                --warning: #f59e0b;
+            }
+
+            * {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+
+            html, body {
+                height: 100%;
+            }
+
+            body {
+                background-color: var(--bg);
+                color: var(--text-main);
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                margin-bottom: 0 !important; /* override scaffold's fixed margin-bottom that caused the overlap */
+            }
+
+            header {
+                flex-shrink: 0;
+            }
+
+            /* Content wrapper grows to fill remaining space, pushing footer down naturally instead of it sitting absolutely and overlapping short pages */
+            body > .container {
+                flex: 1 0 auto;
+            }
+
+            /* Navbar */
+            .navbar {
+                background-color: var(--surface) !important;
+                border-bottom: 1px solid var(--border) !important;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+                padding-top: 0.85rem;
+                padding-bottom: 0.85rem;
+            }
+
+            .navbar-brand {
+                color: var(--text-brand) !important;
+                font-weight: 700 !important;
+                font-size: 17px;
+                letter-spacing: -0.01em;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .navbar-logo {
+                width: 30px;
+                height: 30px;
+                object-fit: contain;
+            }
+
+            .nav-link {
+                color: var(--text-muted) !important;
+                font-weight: 500 !important;
+                font-size: 14px;
+                padding: 8px 14px !important;
+                border-radius: 8px;
+                transition: all 0.15s ease;
+                margin: 0 2px;
+            }
+
+                .nav-link:hover {
+                    color: var(--accent) !important;
+                    background-color: var(--accent-soft);
+                }
+
+            .badge.bg-danger {
+                background-color: var(--danger) !important;
+                font-weight: 600;
+                font-size: 10px;
+                padding: 3px 6px;
+                margin-left: 4px;
+                vertical-align: middle;
+            }
+
+            .btn-outline-danger {
+                border-color: #fecaca;
+                color: #b91c1c;
+                font-weight: 500;
+                font-size: 13px;
+                border-radius: 8px;
+                padding: 6px 14px;
+                transition: all 0.15s ease;
+            }
+
+                .btn-outline-danger:hover {
+                    background-color: #fef2f2;
+                    border-color: #fca5a5;
+                    color: #b91c1c;
+                }
+
+            /* Layout */
+            .container {
+                max-width: 1140px;
+            }
+
+            main {
+                padding-top: 2rem;
+                padding-bottom: 3rem;
+            }
+
+            /* Footer - sticky at bottom via flexbox, not absolute positioning, so it never overlaps short pages */
+            .footer {
+                position: static !important;
+                background-color: var(--surface);
+                border-top: 1px solid var(--border) !important;
+                color: var(--text-muted);
+                font-size: 13px;
+                padding: 1.25rem 0;
+                margin-top: 2rem;
+                flex-shrink: 0;
+                width: auto;
+            }
+
+            /* Global card polish */
+            .card {
+                border: 1px solid var(--border) !important;
+                border-radius: 12px !important;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03) !important;
+            }
+
+            /* Primary buttons - Blue */
+            .btn-primary {
+                background-color: var(--accent) !important;
+                border-color: var(--accent) !important;
+                font-weight: 500;
+                border-radius: 8px;
+                transition: background 0.15s ease, transform 0.1s ease;
+            }
+
+                .btn-primary:hover {
+                    background-color: var(--accent-dark) !important;
+                    border-color: var(--accent-dark) !important;
+                }
+
+                .btn-primary:active {
+                    transform: scale(0.98);
+                }
+
+            .text-primary {
+                color: var(--accent) !important;
+            }
+
+            /* Role badges - Manager (blue) vs HR (amber) */
+            .badge-manager {
+                background-color: var(--accent) !important;
+                color: #fff;
+                font-weight: 500;
+            }
+
+            .badge-hr {
+                background-color: var(--accent-2) !important;
+                color: #fff;
+                font-weight: 500;
+            }
+
+            /* Selected/active states (e.g. balance cards) */
+            .active,
+            .selected {
+                border-color: var(--accent) !important;
+                background-color: var(--accent-soft) !important;
+            }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/Images/LOGO 3S.webp" alt="3S Solutions" class="navbar-logo" />
+                    3S Solutions
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                Dashboard
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("HR"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Employee" asp-action="Index">
+                                    Employees
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="CreateUser">
+                                    Create User
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="InviteUser">
+                                    Invite User
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Employee") || User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="LeaveRequest" asp-action="Apply">
+                                    Apply for Leave
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Manager"))
+                        {
+                            var currentUser = await UserManager.GetUserAsync(User);
+                            var managerPendingCount = DbContext.LeaveRequests
+                                .Count(lr => lr.Status == LeaveStatus.PendingManager
+                                          && lr.Employee!.ManagerId == currentUser!.EmployeeId);
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Approval" asp-action="ManagerQueue">
+                                    Team Approvals
+                                    @if (managerPendingCount > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-danger">@managerPendingCount</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("HR"))
+                        {
+                            var hrPendingCount = DbContext.LeaveRequests
+                                .Count(lr => lr.Status == LeaveStatus.PendingHR);
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Approval" asp-action="HRQueue">
+                                    Final Approvals
+                                    @if (hrPendingCount > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-danger">@hrPendingCount</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-flex">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            © 2026 - 3S Solutions | Employee Management Portal
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

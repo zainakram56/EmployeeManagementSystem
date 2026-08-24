@@ -1,0 +1,76 @@
+﻿@model WebAppMVC.Models.LeaveRequest
+
+@{
+    ViewData["Title"] = "Apply for Leave";
+    var leaveTypes = ViewBag.LeaveTypes as List<WebAppMVC.Models.LeaveType>;
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold text-primary">Apply for Leave</h2>
+    <p class="text-muted">Submit a new leave request for approval.</p>
+</div>
+
+<div class="card shadow-sm" style="max-width: 500px;">
+    <div class="card-body p-4">
+
+        <form method="post" asp-action="Apply" enctype="multipart/form-data">
+
+            <div class="mb-3">
+                <label class="form-label">Leave Type</label>
+                <select name="LeaveTypeId" id="leaveTypeSelect" class="form-select" onchange="toggleAttachment()">
+                    @foreach (var type in leaveTypes!)
+                    {
+                        <option value="@type.Id" data-name="@type.Name">@type.Name (@type.DefaultDaysPerYear days/year)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="StartDate" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="EndDate" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Reason</label>
+                <textarea name="Reason" class="form-control" rows="3" placeholder="Briefly explain the reason"></textarea>
+            </div>
+
+            <div class="mb-3" id="attachmentField" style="display:none;">
+                <label class="form-label">Attach Doctor's Prescription (PDF/Image)</label>
+                <input type="file" name="attachmentFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <p class="text-danger">@ViewBag.Error</p>
+            }
+
+            <button type="submit" class="btn btn-primary w-100">Submit Request</button>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function toggleAttachment() {
+        var select = document.getElementById("leaveTypeSelect");
+        var selectedOption = select.options[select.selectedIndex];
+        var leaveTypeName = selectedOption.getAttribute("data-name");
+        var attachmentField = document.getElementById("attachmentField");
+
+        if (leaveTypeName === "Sick") {
+            attachmentField.style.display = "block";
+        } else {
+            attachmentField.style.display = "none";
+        }
+    }
+
+    // Run once on page load in case "Sick" is already selected by default
+    window.onload = toggleAttachment;
+</script>

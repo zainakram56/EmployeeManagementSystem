@@ -1,0 +1,98 @@
+﻿@{
+    ViewData["Title"] = "Invite Employee";
+    var employees = ViewBag.AvailableEmployees as List<WebAppMVC.Models.Employee>;
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold" style="color: var(--text-brand);">Invite Employee</h2>
+    <p class="text-muted">Send a registration invite to an employee's email — they set their own password.</p>
+</div>
+
+<div class="card shadow-sm" style="max-width: 500px;">
+    <div class="card-body p-4">
+
+        <form method="post" asp-action="InviteUser">
+
+            <div class="mb-3">
+                <label class="form-label">Employee</label>
+                <select name="employeeId" id="employeeSelect" class="form-select" onchange="applySmartDefault()">
+                    @if (employees != null && employees.Any())
+                    {
+                        @foreach (var emp in employees)
+                        {
+                            <option value="@emp.Id" data-ismanager="@emp.IsManager.ToString().ToLower()">@emp.Name (@emp.Department?.Name)</option>
+                        }
+                    }
+                    else
+                    {
+                        <option disabled selected>No employees without a login found</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="e.g. sarah@company.com" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select name="role" id="roleSelect" class="form-select">
+                    <option value="Employee">Employee</option>
+                    <option value="Manager">Manager</option>
+                    <option value="HR">HR</option>
+                </select>
+            </div>
+
+            @if (ViewBag.Success != null)
+            {
+                <p class="text-success">@ViewBag.Success</p>
+            }
+            @if (ViewBag.Error != null)
+            {
+                <p class="text-danger">@ViewBag.Error</p>
+            }
+
+            <button type="submit" class="btn btn-primary w-100">Send Invite</button>
+
+        </form>
+        <script>
+                    function applySmartDefault() {
+                        var empSelect = document.getElementById("employeeSelect");
+                        var selectedOption = empSelect.options[empSelect.selectedIndex];
+                        var isManager = selectedOption.getAttribute("data-ismanager");
+                        var roleSelect = document.getElementById("roleSelect");
+
+                        if (isManager === "true") {
+                            roleSelect.value = "Manager";
+                        } else {
+                            roleSelect.value = "Employee";
+                        }
+                    }
+
+                    window.onload = applySmartDefault;
+        </script>
+
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .form-control,
+    .form-select {
+        border-color: var(--border);
+        border-radius: 8px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+</style>

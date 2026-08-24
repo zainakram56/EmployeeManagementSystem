@@ -1,0 +1,226 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    var balances = ViewBag.BalanceSummary as IEnumerable<dynamic>;
+    var requests = ViewBag.MyRequests as List<WebAppMVC.Models.LeaveRequest>;
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold" style="color: var(--text-brand);">Welcome, @ViewBag.ProfileName</h2>
+    <p class="text-muted">
+        @ViewBag.ProfileDepartment
+        @if (User.IsInRole("Manager"))
+        {
+            <span class="badge badge-manager ms-1">Manager</span>
+        }
+        @if (User.IsInRole("HR"))
+        {
+            <span class="badge badge-hr ms-1">HR</span>
+        }
+    </p>
+</div>
+
+@if (User.IsInRole("Employee") || User.IsInRole("Manager"))
+{
+    <div class="mb-4">
+        <h5 class="fw-bold mb-3">Your Leave Balance</h5>
+        <div class="d-flex flex-wrap gap-2" id="balanceCards">
+            <div class="card shadow-sm balance-card" data-filter="all" style="cursor:pointer; min-width:140px;">
+                <div class="card-body text-center py-3">
+                    <div class="fs-4 mb-1">📋</div>
+                    <div class="fw-bold">All Leaves</div>
+                    <small class="text-muted">View complete history</small>
+                </div>
+            </div>
+            @foreach (var b in balances!)
+            {
+                <div class="card shadow-sm balance-card" data-filter="@b.Id" style="cursor:pointer; min-width:140px;">
+                    <div class="card-body text-center py-3">
+                        <div class="fw-bold">@b.Name</div>
+                        <div class="fw-semibold" style="color: var(--accent);">@b.Used / @b.Allocated days used</div>
+                        <small class="text-muted">@b.Remaining days left</small>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="history-arrow" id="historyArrow"></div>
+
+        <div class="mb-4" id="historySection">
+            <h5 class="fw-bold mb-3">Leave History</h5>
+            @if (requests == null || !requests.Any())
+            {
+                <p class="text-muted">No leave requests yet.</p>
+            }
+            else
+            {
+                <table class="table table-hover align-middle shadow-sm" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Applied On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in requests)
+                        {
+                            <tr data-leavetype="@request.LeaveTypeId">
+                                <td>@request.LeaveType?.Name</td>
+                                <td>@request.StartDate.ToShortDateString()</td>
+                                <td>@request.EndDate.ToShortDateString()</td>
+                                <td>@request.Reason</td>
+                                <td>
+                                    <span class="badge
+                                        @(request.Status == WebAppMVC.Models.LeaveStatus.Approved ? "bg-success" :
+                                                                                                                              request.Status.ToString().Contains("Rejected") ? "bg-danger" : "bg-warning text-dark")">
+                                        @request.Status
+                                    </span>
+                                </td>
+                                <td>@request.AppliedOn.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@if (User.IsInRole("Manager"))
+{
+    <div class="card shadow-sm mb-4" style="max-width: 500px;">
+        <div class="card-body">
+            <h5 class="fw-bold mb-2">Team Approvals</h5>
+            <p>You have <strong style="color: var(--accent);">@ViewBag.PendingTeamApprovals</strong> request(s) awaiting your approval.</p>
+            <a asp-controller="Approval" asp-action="ManagerQueue" class="btn btn-outline-primary btn-sm">
+                Review Requests
+            </a>
+        </div>
+    </div>
+}
+
+@if (User.IsInRole("HR"))
+{
+    <div class="card shadow-sm mb-4" style="max-width: 500px;">
+        <div class="card-body">
+            <h5 class="fw-bold mb-2">Company Overview</h5>
+            <p>Total Employees: <strong style="color: var(--accent);">@ViewBag.TotalEmployees</strong></p>
+            <p>Pending Final Approvals: <strong style="color: var(--accent);">@ViewBag.PendingHRApprovals</strong></p>
+            <a asp-controller="Approval" asp-action="HRQueue" class="btn btn-outline-primary btn-sm">
+                Review Requests
+            </a>
+        </div>
+    </div>
+}
+
+<style>
+    .balance-card {
+        border: 2px solid transparent;
+        transition: all 0.15s ease;
+        border-radius: 12px;
+    }
+
+        .balance-card:hover {
+            border-color: var(--accent);
+        }
+
+        .balance-card.active {
+            border-color: var(--accent) !important;
+            background-color: var(--accent-soft) !important;
+        }
+
+    .history-arrow {
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid var(--accent);
+        margin-left: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+        .history-arrow.visible {
+            opacity: 1;
+        }
+
+    #historySection {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.4s ease, opacity 0.3s ease;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background-color: var(--surface);
+        padding: 0 1rem;
+    }
+
+        #historySection.expanded {
+            max-height: 2000px;
+            opacity: 1;
+            padding: 1rem;
+        }
+
+    #historyTable thead {
+        background-color: var(--accent-soft);
+    }
+
+        #historyTable thead th {
+            color: var(--text-brand);
+            font-weight: 600;
+            border-bottom: 2px solid var(--accent);
+        }
+
+    .btn-outline-primary {
+        color: var(--accent);
+        border-color: var(--accent);
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+        .btn-outline-primary:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+</style>
+
+<script>
+    document.querySelectorAll('.balance-card').forEach(card => {
+        card.addEventListener('click', function () {
+            var isAlreadyActive = this.classList.contains('active');
+            var historySection = document.getElementById('historySection');
+            var arrow = document.getElementById('historyArrow');
+
+            document.querySelectorAll('.balance-card').forEach(c => c.classList.remove('active'));
+
+            if (isAlreadyActive) {
+                historySection.classList.remove('expanded');
+                arrow.classList.remove('visible');
+                return;
+            }
+
+            this.classList.add('active');
+            historySection.classList.add('expanded');
+
+            var cardRect = this.getBoundingClientRect();
+            var containerRect = document.getElementById('balanceCards').getBoundingClientRect();
+            var arrowLeft = cardRect.left - containerRect.left + (cardRect.width / 2) - 10;
+            arrow.style.marginLeft = arrowLeft + 'px';
+            arrow.classList.add('visible');
+
+            var filter = this.getAttribute('data-filter');
+            var rows = document.querySelectorAll('#historyTable tbody tr');
+
+            rows.forEach(row => {
+                if (filter === 'all' || row.getAttribute('data-leavetype') === filter) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>

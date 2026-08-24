@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../WebInterface/WebInterface.csproj" />
+  <Project Path="WebAppMVC.csproj" />
+</Solution>
