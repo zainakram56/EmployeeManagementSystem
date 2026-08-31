@@ -1,0 +1,76 @@
+﻿@model List<WebAppMVC.Models.EmployeeLeaveSummaryViewModel>
+
+@{
+    ViewData["Title"] = "Leave Summary Report";
+
+    var leaveTypeNames = Model
+        .SelectMany(e => e.LeaveTypes)
+        .Select(lt => lt.LeaveTypeName)
+        .Distinct()
+        .OrderBy(n => n)
+        .ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold" style="color: var(--text-brand);">Leave Summary Report</h2>
+        <p class="text-muted mb-0">An overview of leave usage across all employees</p>
+    </div>
+    <a asp-controller="Report" asp-action="LeaveSummaryPdf" class="btn btn-primary">
+        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <p class="text-muted text-center p-4 mb-0">No leave balance records found.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="leaveSummaryTable">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            @foreach (var typeName in leaveTypeNames)
+                            {
+                                <th class="text-center">@typeName<br /><small class="text-muted fw-normal">(Used/Total)</small></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var emp in Model)
+                        {
+                            <tr>
+                                <td>@emp.EmployeeName</td>
+                                <td>@emp.Department</td>
+                                @foreach (var typeName in leaveTypeNames)
+                                {
+                                    var lt = emp.LeaveTypes.FirstOrDefault(x => x.LeaveTypeName == typeName);
+                                    <td class="text-center">
+                                        @(lt != null ? $"{lt.Used}/{lt.Allocated}" : "-")
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    #leaveSummaryTable thead {
+        background-color: var(--accent-soft);
+    }
+
+        #leaveSummaryTable thead th {
+            color: var(--text-brand);
+            font-weight: 600;
+            border-bottom: 2px solid var(--accent);
+        }
+</style>
