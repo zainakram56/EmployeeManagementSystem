@@ -4,6 +4,9 @@ using WebAppMVC.Data;
 using WebAppMVC.Handlers;
 using WebAppMVC.Models;
 using WebAppMVC.Services;
+using QuestPDF.Infrastructure;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
